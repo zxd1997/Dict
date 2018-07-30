@@ -19,6 +19,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".TestActivity"
+            android:label="@string/title_activity_tset"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

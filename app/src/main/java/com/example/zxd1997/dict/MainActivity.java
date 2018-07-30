@@ -1,22 +1,25 @@
 package com.example.zxd1997.dict;
 
 import android.app.ProgressDialog;
-import android.content.Intent;
+import android.content.DialogInterface;
+import android.database.ContentObserver;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TextInputEditText;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.view.menu.MenuWrapperFactory;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -25,13 +28,13 @@ import com.google.gson.JsonParser;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     ProgressDialog pd;
     WordAdapter adapter;
     RecyclerView recyclerView;
+    Observer observer = new Observer(new Handler());
     DatabaseHelper helper;
     List<Word> words;
     Handler handler=new Handler(new Handler.Callback() {
@@ -87,23 +90,96 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getContentResolver().registerContentObserver(Uri.parse("content://com.example.dict"), true, observer);
         recyclerView=findViewById(R.id.list);
         helper=new DatabaseHelper(MainActivity.this);
 //        helper.createDatabase();
         words=helper.query(1,"");
-        adapter=new WordAdapter(words);
+        adapter = new WordAdapter(words, MainActivity.this);
         recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
         recyclerView.addItemDecoration(new DividerItemDecoration(MainActivity.this,DividerItemDecoration.VERTICAL));
         recyclerView.setAdapter(adapter);
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+            public void onClick(final View view) {
+                final View v = getLayoutInflater().inflate(R.layout.dialog_add, null);
+                final TextInputEditText word = v.findViewById(R.id.wordInput);
+                final TextInputEditText mean = v.findViewById(R.id.meanInput);
+                final TextInputEditText level = v.findViewById(R.id.levelInput);
+                new AlertDialog.Builder(MainActivity.this).setTitle("添加单词")
+                        .setView(v).setPositiveButton("添加", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        final Word word1 = new Word();
+                        word1.setWord(word.getText().toString());
+                        word1.setExplanation(mean.getText().toString());
+                        word1.setLevel(Integer.valueOf(level.getText().toString().equals("") ? "0" : level.getText().toString()));
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                helper.insert(word1);
+                                words.clear();
+                                words.addAll(helper.query(1, ""));
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        adapter.notifyDataSetChanged();
+                                    }
+                                });
+                            }
+                        }).start();
+                        dialog.dismiss();
+                        Snackbar.make(view, "添加成功", Snackbar.LENGTH_LONG)
+                                .setAction("Action", null).show();
+                    }
+                }).setNegativeButton("取消", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                }).show();
             }
         });
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        getContentResolver().unregisterContentObserver(observer);
+    }
+
+    class Observer extends ContentObserver {
+        /**
+         * Creates a content observer.
+         *
+         * @param handler The handler to run {@link #onChange} on, or null if none.
+         */
+        private Handler handler;
+
+        public Observer(Handler handler) {
+            super(handler);
+            this.handler = handler;
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            super.onChange(selfChange);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    words.clear();
+                    words.addAll(helper.query(1, ""));
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            adapter.notifyDataSetChanged();
+                        }
+                    });
+                }
+            }).start();
+        }
     }
 
     @Override

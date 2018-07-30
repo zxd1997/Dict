@@ -3,10 +3,8 @@ package com.example.zxd1997.dict;
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
-import java.io.BufferedWriter;
 import java.util.Objects;
 
 public class DictProvider extends ContentProvider {
@@ -16,7 +14,7 @@ public class DictProvider extends ContentProvider {
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        // Implement this to handle requests to delete one or more rows.
+        // Implement this to handle requests to delete one or more rows.        getContext().getContentResolver().notifyChange(uri,null);
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
@@ -34,6 +32,7 @@ public class DictProvider extends ContentProvider {
         word.setExplanation(values.getAsString("explanation"));
         word.setLevel(values.getAsInteger("level"));
         db.insert(word);
+        getContext().getContentResolver().notifyChange(uri, null);
         return new Uri.Builder().build();
     }
 
