@@ -45,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
                 final TextInputEditText word = v.findViewById(R.id.wordInput);
                 final TextInputEditText mean = v.findViewById(R.id.meanInput);
                 final TextInputEditText level = v.findViewById(R.id.levelInput);
-                AlertDialog dialog = new AlertDialog.Builder(MainActivity.this).setTitle("添加单词")
+                new AlertDialog.Builder(MainActivity.this).setTitle("添加单词")
                         .setView(v).setPositiveButton("添加", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {

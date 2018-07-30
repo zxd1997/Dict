@@ -23,7 +23,7 @@ import java.util.Random;
 public class TestActivity extends AppCompatActivity {
     List<Word> words = new ArrayList<>();
     RecyclerView recyclerView;
-
+    WordAdapter adapter = new WordAdapter(words);
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,20 +45,28 @@ public class TestActivity extends AppCompatActivity {
         cursor.close();
         Random random = new Random();
         for (int i = 0; i < words.size(); i++) {
+            Word word = words.get(i);
             for (int j = 0; j < 3; j++) {
                 int t;
                 while ((t = random.nextInt(19)) == i) {
                 }
-                words.get(i).getAnswers().add(words.get(t).getExplanation().replaceAll("\\[.*?\\]", ""));
+                word.getAnswers().add(words.get(t).getExplanation().replaceAll("\\[.*?\\]", ""));
             }
-            Collections.sort(words.get(i).getAnswers());
+            Collections.sort(word.getAnswers());
+            int j = 0;
+            for (String s : word.getAnswers()) {
+                if (word.getExplanation().replaceAll("\\[.*?\\]", "").equals(s)) {
+                    word.setRight(j);
+                }
+                j++;
+            }
         }
         for (Word word : words) {
             Log.d("word", "onCreate: " + word.getWord() + " " + word.getAnswers());
         }
         recyclerView = findViewById(R.id.questions);
         recyclerView.setLayoutManager(new LinearLayoutManager(TestActivity.this));
-        recyclerView.setAdapter(new WordAdapter(words));
+        recyclerView.setAdapter(adapter);
     }
 
     @Override
@@ -89,7 +97,7 @@ public class TestActivity extends AppCompatActivity {
                 i++;
             }
 //            Toast.makeText(TestActivity.this,"正确 "+j+" 题",Toast.LENGTH_LONG).show();
-            AlertDialog dialog = new AlertDialog.Builder(TestActivity.this)
+            new AlertDialog.Builder(TestActivity.this)
                     .setTitle("完成测试").setMessage("共 20 个单词，答对 " + j + " 个")
                     .setPositiveButton("完成", new DialogInterface.OnClickListener() {
                         @Override
@@ -97,6 +105,8 @@ public class TestActivity extends AppCompatActivity {
                             dialog.dismiss();
                         }
                     }).show();
+            adapter.setShowAnswer(true);
+            adapter.notifyDataSetChanged();
             return true;
         }
 

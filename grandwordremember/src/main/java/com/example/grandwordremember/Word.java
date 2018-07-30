@@ -9,6 +9,15 @@ public class Word {
     private int level;
     private List<String> answers = new ArrayList<>();
     private int selected = 0;
+    private int right = 0;
+
+    public int getRight() {
+        return right;
+    }
+
+    public void setRight(int right) {
+        this.right = right;
+    }
 
     public int getSelected() {
         return selected;
