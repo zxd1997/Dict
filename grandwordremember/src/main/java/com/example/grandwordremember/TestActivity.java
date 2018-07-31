@@ -65,6 +65,7 @@ public class TestActivity extends AppCompatActivity {
             Log.d("word", "onCreate: " + word.getWord() + " " + word.getAnswers());
         }
         recyclerView = findViewById(R.id.questions);
+        recyclerView.setItemViewCacheSize(20);
         recyclerView.setLayoutManager(new LinearLayoutManager(TestActivity.this));
         recyclerView.setAdapter(adapter);
     }
@@ -97,6 +98,9 @@ public class TestActivity extends AppCompatActivity {
                 i++;
             }
 //            Toast.makeText(TestActivity.this,"正确 "+j+" 题",Toast.LENGTH_LONG).show();
+            adapter.setShowAnswer(true);
+            adapter.notifyDataSetChanged();
+            item.setVisible(false);
             new AlertDialog.Builder(TestActivity.this)
                     .setTitle("完成测试").setMessage("共 20 个单词，答对 " + j + " 个")
                     .setPositiveButton("完成", new DialogInterface.OnClickListener() {
@@ -105,8 +109,6 @@ public class TestActivity extends AppCompatActivity {
                             dialog.dismiss();
                         }
                     }).show();
-            adapter.setShowAnswer(true);
-            adapter.notifyDataSetChanged();
             return true;
         }
 

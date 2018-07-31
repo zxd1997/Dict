@@ -15,11 +15,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -37,17 +41,17 @@ public class MainActivity extends AppCompatActivity {
     Observer observer = new Observer(new Handler());
     DatabaseHelper helper;
     List<Word> words;
-    Handler handler=new Handler(new Handler.Callback() {
+    Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(final Message msg) {
-            if (msg.what==1){
+            if (msg.what == 1) {
                 pd.setProgress(Integer.valueOf(msg.obj.toString()));
                 return true;
             }
             final JsonParser parser = new JsonParser();
             final JsonArray jsonArray = parser.parse(msg.obj.toString()).getAsJsonArray();
             pd.dismiss();
-            pd=new ProgressDialog(MainActivity.this);
+            pd = new ProgressDialog(MainActivity.this);
             pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
             pd.setTitle("下载单词");
             pd.setMessage("下载中");
@@ -58,20 +62,22 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     words.clear();
-                    int i=1;
+                    int i = 1;
                     for (JsonElement e : jsonArray) {
                         Word word = new Gson().fromJson(e, Word.class);
                         words.add(word);
 //                        helper.insert(word);
-                        Message message=Message.obtain();
-                        message.obj=i;
-                        message.what=1;
+                        Message message = Message.obtain();
+                        message.obj = i;
+                        message.what = 1;
                         handler.sendMessage(message);
                         i++;
-                        Log.d("word", "run: "+word.getWord());
+                        Log.d("word", "run: " + word.getWord());
                     }
 //                    words=helper.query(1,"");
                     helper.insertAll(words);
+                    words.clear();
+                    words.addAll(helper.query(1, ""));
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -84,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
             return true;
         }
     });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,14 +98,37 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getContentResolver().registerContentObserver(Uri.parse("content://com.example.dict"), true, observer);
-        recyclerView=findViewById(R.id.list);
-        helper=new DatabaseHelper(MainActivity.this);
+        recyclerView = findViewById(R.id.list);
+        helper = new DatabaseHelper(MainActivity.this);
 //        helper.createDatabase();
-        words=helper.query(1,"");
+        words = helper.query(1, "");
         adapter = new WordAdapter(words, MainActivity.this);
         recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
-        recyclerView.addItemDecoration(new DividerItemDecoration(MainActivity.this,DividerItemDecoration.VERTICAL));
+        recyclerView.addItemDecoration(new DividerItemDecoration(MainActivity.this, DividerItemDecoration.VERTICAL));
         recyclerView.setAdapter(adapter);
+        String t[] = new String[]{"全部", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"};
+        Spinner spinner = findViewById(R.id.spinner);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position > 0) {
+                    words.clear();
+                    words.addAll(helper.query(2, String.valueOf((char) ('a' + position - 1))));
+                    adapter.notifyDataSetChanged();
+                    Log.d("first", "onItemSelected: " + String.valueOf((char) ('a' + position - 1)));
+                } else {
+                    words.clear();
+                    words.addAll(helper.query(1, ""));
+                    adapter.notifyDataSetChanged();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+        spinner.setAdapter(new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_dropdown_item, t));
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -186,6 +216,34 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+        final SearchView searchView =
+                (SearchView) menu.findItem(R.id.search).getActionView();
+        searchView.setMaxWidth(1080);
+        searchView.onActionViewExpanded();
+        searchView.setIconifiedByDefault(false);
+//        SearchManager searchManager =
+//                (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+//        assert searchManager != null;
+//        searchView.setSearchableInfo(
+//                searchManager.getSearchableInfo(getComponentName()));
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+//                Log.d("Search", "onCreate: " + query);
+                searchView.clearFocus();
+                Log.d("search", "onQueryTextSubmit: " + query);
+                words.clear();
+                words.addAll(helper.query(3, query));
+                adapter.notifyDataSetChanged();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+
+        });
         return true;
     }
 
@@ -213,8 +271,8 @@ public class MainActivity extends AppCompatActivity {
                         byte[] buffer = new byte[length];
                         is.read(buffer);
                         String result = new String(buffer, "utf8");
-                        Message message=Message.obtain();
-                        message.obj=result;
+                        Message message = Message.obtain();
+                        message.obj = result;
                         handler.sendMessage(message);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -223,8 +281,8 @@ public class MainActivity extends AppCompatActivity {
             }).start();
             return true;
         }
-        if (id==R.id.show){
-            Log.d("show", "onOptionsItemSelected: "+item.isChecked());
+        if (id == R.id.show) {
+            Log.d("show", "onOptionsItemSelected: " + item.isChecked());
             item.setChecked(!item.isChecked());
             adapter.setShow(item.isChecked());
             adapter.notifyDataSetChanged();

@@ -5,9 +5,9 @@
     <item
         android:id="@+id/search"
         android:icon="@drawable/ic_search_black_24dp"
-        android:orderInCategory="100"
         android:title="Search"
-        app:showAsAction="always" />
+        app:actionViewClass="android.support.v7.widget.SearchView"
+        app:showAsAction="always|collapseActionView" />
     <item
         android:id="@+id/download"
         android:orderInCategory="100"
@@ -15,9 +15,9 @@
         app:showAsAction="never" />
     <item
         android:id="@+id/show"
-        android:orderInCategory="100"
-        android:title="显示词义"
         android:checkable="true"
         android:checked="false"
+        android:orderInCategory="100"
+        android:title="显示词义"
         app:showAsAction="never" />
 </menu>

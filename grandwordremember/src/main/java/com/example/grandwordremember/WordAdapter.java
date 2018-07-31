@@ -3,7 +3,6 @@ package com.example.grandwordremember;
 import android.graphics.Color;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,35 +47,31 @@ public class WordAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         final ViewHolder viewHolder = (ViewHolder) holder;
         final Word word = words.get(position);
         List<String> answer = word.getAnswers();
-        Log.d("size", "onBindViewHolder: " + answer.size());
-        for (String s : answer) {
-            Log.d("word", "onBindViewHolder: " + s);
-        }
         if (isShowAnswer()) {
             switch (word.getRight()) {
                 case 0:
-                    viewHolder.a1.setBackgroundColor(Color.RED);
+                    viewHolder.a1.setBackgroundColor(Color.LTGRAY);
                     viewHolder.a2.setBackgroundColor(Color.WHITE);
                     viewHolder.a3.setBackgroundColor(Color.WHITE);
                     viewHolder.a4.setBackgroundColor(Color.WHITE);
                     break;
                 case 1:
                     viewHolder.a1.setBackgroundColor(Color.WHITE);
-                    viewHolder.a2.setBackgroundColor(Color.RED);
+                    viewHolder.a2.setBackgroundColor(Color.LTGRAY);
                     viewHolder.a3.setBackgroundColor(Color.WHITE);
                     viewHolder.a4.setBackgroundColor(Color.WHITE);
                     break;
                 case 2:
                     viewHolder.a1.setBackgroundColor(Color.WHITE);
                     viewHolder.a2.setBackgroundColor(Color.WHITE);
-                    viewHolder.a3.setBackgroundColor(Color.RED);
+                    viewHolder.a3.setBackgroundColor(Color.LTGRAY);
                     viewHolder.a4.setBackgroundColor(Color.WHITE);
                     break;
                 case 3:
                     viewHolder.a1.setBackgroundColor(Color.WHITE);
                     viewHolder.a2.setBackgroundColor(Color.WHITE);
                     viewHolder.a3.setBackgroundColor(Color.WHITE);
-                    viewHolder.a4.setBackgroundColor(Color.RED);
+                    viewHolder.a4.setBackgroundColor(Color.LTGRAY);
                     break;
             }
         }

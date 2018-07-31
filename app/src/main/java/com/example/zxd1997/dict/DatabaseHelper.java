@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteDatabase;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 public class DatabaseHelper {
     private SQLiteDatabase db;
@@ -79,11 +78,11 @@ public class DatabaseHelper {
     }
 
     private Cursor queryFirst(String first) {
-        return db.query("dict", null, "word like", new String[]{first + "%"}, null, null, "word  COLLATE NOCASE", null);
+        return db.query("dict", null, "word like '" + first + "%'", new String[]{}, null, null, "word  COLLATE NOCASE", null);
     }
 
     private Cursor queryLike(String like) {
-        return db.query("dict", null, "word like", new String[]{"%" + like + "%"}, null, null, "word  COLLATE NOCASE", null);
+        return db.query("dict", null, "word like " + "'%" + like + "%'", null, null, null, "word  COLLATE NOCASE", null);
 
     }
 }
